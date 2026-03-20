@@ -1,0 +1,146 @@
+/* Simulator Styles */
+.simulator-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.simulator-container header {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.simulator-container h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #1f2937;
+}
+
+.simulator-container > header p {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.simulator-controls {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.simulator-controls select {
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.btn-run {
+  background: #667eea;
+  color: white;
+  padding: 12px 30px;
+  font-weight: 600;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.simulation-result {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.simulation-result h2 {
+  font-size: 22px;
+  margin-bottom: 25px;
+  color: #1f2937;
+}
+
+.result-boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.result-box {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  border-left: 4px solid #667eea;
+}
+
+.result-box h3 {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.result-box value {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.result-box p {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.time-slot-comparison {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.time-slot-comparison h2 {
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: #1f2937;
+}
+
+.time-slot-comparison table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.time-slot-comparison th {
+  background: #f3f4f6;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #1f2937;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.time-slot-comparison td {
+  padding: 15px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #6b7280;
+}
+
+.time-slot-comparison tr.risk-low {
+  background: #f0fdf4;
+}
+
+.time-slot-comparison tr.risk-medium {
+  background: #fffbeb;
+}
+
+.time-slot-comparison tr.risk-high {
+  background: #fef2f2;
+}

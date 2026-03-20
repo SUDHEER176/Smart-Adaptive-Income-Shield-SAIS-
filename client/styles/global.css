@@ -1,0 +1,108 @@
+/* Global Styles */
+:root {
+  --primary: #6366f1;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --dark: #1f2937;
+  --light: #f3f4f6;
+  --border-radius: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: var(--dark);
+}
+
+.app {
+  min-height: 100vh;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-success {
+  background: var(--success);
+  color: white;
+}
+
+.btn-info {
+  background: #3b82f6;
+  color: white;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: white;
+}
+
+.error-message {
+  background: var(--danger);
+  color: white;
+  padding: 12px;
+  border-radius: var(--border-radius);
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.highlight {
+  color: var(--success);
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.highlight-red {
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.highlight-green {
+  color: var(--success);
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.highlight-blue {
+  color: #3b82f6;
+  font-weight: 700;
+  font-size: 24px;
+}

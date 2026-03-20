@@ -1,0 +1,196 @@
+/* Premium Simulator Styles */
+.simulator-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.simulator-container header {
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  padding: 35px 40px;
+  border-radius: 24px;
+  margin-bottom: 35px;
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--glass-border);
+}
+
+.simulator-container h1 {
+  font-size: 36px;
+  margin-bottom: 10px;
+  color: var(--text-main);
+  font-weight: 800;
+  background: linear-gradient(135deg, white 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.simulator-container > header p {
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.simulator-controls {
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  padding: 30px 40px;
+  border-radius: 20px;
+  margin-bottom: 35px;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 20px;
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--glass-border);
+}
+
+.simulator-controls select {
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 16px;
+  color: white;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.simulator-controls select:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.2);
+  outline: none;
+}
+
+.simulator-controls select option {
+  background: var(--dark);
+}
+
+.btn-run {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: white;
+  padding: 16px 35px;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.simulation-result {
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  padding: 35px 40px;
+  border-radius: 24px;
+  margin-bottom: 35px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.simulation-result h2 {
+  font-size: 26px;
+  margin-bottom: 30px;
+  color: white;
+  font-weight: 700;
+}
+
+.result-boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.result-box {
+  background: rgba(15, 23, 42, 0.5);
+  padding: 25px;
+  border-radius: 16px;
+  text-align: center;
+  border-top: 4px solid #8b5cf6;
+  border-left: 1px solid rgba(255,255,255,0.05);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.3s ease;
+}
+
+.result-box:hover {
+  transform: translateY(-5px);
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.result-box h3 {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.result-box div {
+  display: block;
+  font-size: 36px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 10px;
+  text-shadow: 0 0 15px rgba(255,255,255,0.2);
+}
+
+.result-box p {
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.time-slot-comparison {
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  padding: 35px 40px;
+  border-radius: 24px;
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--glass-border);
+  overflow: hidden;
+}
+
+.time-slot-comparison h2 {
+  font-size: 26px;
+  margin-bottom: 25px;
+  color: white;
+  font-weight: 700;
+}
+
+.time-slot-comparison table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.time-slot-comparison th {
+  background: rgba(15, 23, 42, 0.6);
+  padding: 18px 15px;
+  text-align: left;
+  font-weight: 700;
+  color: white;
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 14px;
+}
+
+.time-slot-comparison td {
+  padding: 18px 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: var(--text-main);
+  font-size: 16px;
+}
+
+.time-slot-comparison tr.risk-low td {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.time-slot-comparison tr.risk-medium td {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.time-slot-comparison tr.risk-high td {
+  background: rgba(239, 68, 68, 0.1);
+}
