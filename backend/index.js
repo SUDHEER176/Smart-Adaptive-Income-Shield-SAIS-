@@ -415,6 +415,31 @@ async function generateBotResponse(message, senderPhone) {
   const msg = message.trim().toLowerCase();
   const session = userManager.getOrCreateSession(senderPhone);
 
+  // ========== SESSION RECOVERY (from Supabase) ==========
+  // If session is new/unregistered in memory, check if they exist in DB
+  if (!session.isRegistered) {
+    try {
+      const dbWorker = await db.getWorkerByPhone(senderPhone);
+      if (dbWorker) {
+        console.log(`♻️  Recovered session for ${senderPhone} from Supabase`);
+        session.isRegistered = true;
+        session.workerId = dbWorker.worker_id;
+        session.workerData = {
+          name: dbWorker.name,
+          zone: dbWorker.zone,
+          platform: dbWorker.platform,
+          weeklyHours: dbWorker.working_hours,
+          upiId: dbWorker.upi_id
+        };
+        // Load their claims too if any
+        const allClaims = await db.getAllClaims();
+        session.claims = allClaims.filter(c => c.worker_id === dbWorker.worker_id);
+      }
+    } catch (err) {
+      console.warn(`⚠️  Failed to recover session from DB:`, err.message);
+    }
+  }
+
   console.log(`📱 Message from ${senderPhone}: "${message}"`);
   console.log(`👤 Registered: ${session.isRegistered}, Worker: ${session.workerId}`);
 
