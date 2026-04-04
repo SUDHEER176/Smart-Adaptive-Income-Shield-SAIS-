@@ -656,12 +656,13 @@ function sendWhatsAppMessage(phoneNumber, message) {
 
 // ============ SERVER START ============
 app.listen(PORT, '0.0.0.0', () => {
+  const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
   console.log(`\n${'='.repeat(70)}`);
   console.log(`✅ BACKEND SERVER STARTED WITH SUPABASE`);
   console.log(`${'='.repeat(70)}`);
   console.log(`\n📍 SERVER INFO:`);
   console.log(`   Port: ${PORT}`);
-  console.log(`   URL: http://localhost:${PORT}`);
+  console.log(`   URL: ${RENDER_EXTERNAL_URL}`);
   
   console.log(`\n🔐 INTEGRATIONS:`);
   console.log(`   ✅ Supabase: ${process.env.SUPABASE_URL ? 'CONFIGURED' : 'NOT SET'}`);
