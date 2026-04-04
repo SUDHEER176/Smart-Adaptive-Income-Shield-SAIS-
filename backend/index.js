@@ -510,58 +510,78 @@ async function generateBotResponse(message, senderPhone) {
     try {
       console.log('📝 BOT SIGNUP: Internal DB call for', senderPhone);
       
-      const zoneData = zones.find(z => z.name === session.registrationData.zone);
-      const workerId = `W${Date.now()}`;
-      
-      // 1. Create worker
-      const worker = await db.createWorker(
-        senderPhone, 
-        workerId, 
-        session.registrationData.name, 
-        session.registrationData.zone, 
-        session.registrationData.platform, 
-        session.registrationData.weeklyHours, 
-        session.registrationData.upiId
-      );
+      // Safety check: is worker already in DB?
+      let worker = await db.getWorkerByPhone(senderPhone);
+      let workerId;
 
-      // 2. Create policy
+      if (worker) {
+        console.log('♻️  Worker already exists in DB, reusing profile');
+        workerId = worker.worker_id;
+      } else {
+        console.log('🆕 Creating new worker profile in DB');
+        workerId = `W${Date.now()}`;
+        
+        worker = await db.createWorker(
+          senderPhone, 
+          workerId, 
+          session.registrationData.name, 
+          session.registrationData.zone, 
+          session.registrationData.platform, 
+          session.registrationData.weeklyHours || 40, 
+          session.registrationData.upiId
+        );
+      }
+
+      if (!worker) throw new Error('Database failed to create/retrieve worker');
+
+      // 2. Create policy (or skip if exists)
+      const zoneData = zones.find(z => z.name === (worker.zone || session.registrationData.zone));
+      const hours = worker.working_hours || session.registrationData.weeklyHours || 40;
+      
       const premiumData = calculatePremium({ 
-        weeklyHours: session.registrationData.weeklyHours,
-        riskScore: 0.5 // Default risk score for new workers
+        weeklyHours: hours,
+        riskScore: 0.5 
       }, zoneData || zones[0], []);
-      const coverageData = getCoverageLimit(premiumData.totalPremium, { 
-        weeklyHours: session.registrationData.weeklyHours,
+      
+      const coverageData = getCoverageLimit(premiumData.totalPremium || 200, { 
+        weeklyHours: hours,
         riskScore: 0.5 
       }, zoneData || zones[0]);
       
       await db.createPolicy(
         `POL${Date.now()}`,
         senderPhone,
-        session.registrationData.zone,
-        premiumData.totalPremium,
-        coverageData.coverageLimit
+        worker.zone || session.registrationData.zone,
+        premiumData.totalPremium || 200,
+        coverageData.coverageLimit || 50000
       );
 
-      // 3. Record registration
+      // 3. Record registration event
       await db.createRegistration(senderPhone, 'completed', {
-        name: session.registrationData.name,
-        zone: session.registrationData.zone,
-        platform: session.registrationData.platform,
-        weeklyHours: session.registrationData.weeklyHours,
-        upiId: session.registrationData.upiId
+        name: worker.name || session.registrationData.name,
+        zone: worker.zone || session.registrationData.zone,
+        platform: worker.platform || session.registrationData.platform,
+        weeklyHours: hours,
+        upiId: worker.upi_id || session.registrationData.upiId
       });
 
-      // Update session
+      // Update session to keep it in sync
       session.workerId = workerId;
       session.isRegistered = true;
-      session.workerData = { ...session.registrationData };
+      session.workerData = {
+        name: worker.name,
+        zone: worker.zone,
+        platform: worker.platform,
+        weeklyHours: hours,
+        upiId: worker.upi_id
+      };
       session.registrationStep = null;
       session.registrationData = {};
 
       return `🎉 *Registration Complete!*\n\n✅ Welcome, ${session.workerData.name}!\n\n*Your Details:*\n🆔 Worker ID: ${session.workerId}\n📍 Zone: ${session.workerData.zone}\n🚗 Platform: ${session.workerData.platform}\n⏰ Hours: ${session.workerData.weeklyHours}/week\n💳 UPI ID: ${session.workerData.upiId}\n\n🛡️ Coverage active immediately\n\nYou're all set! Use these commands:\n📋 POLICY | 💰 CLAIM | 📊 STATUS | 💬 HELP`;
     } catch (err) {
       console.error('❌ Error during internal BOT registration:', err.message);
-      return `❌ *Registration Failed*\n\nSorry, we couldn't save your data. Error: ${err.message}\n\nPlease try again by typing *REGISTER*.`;
+      return `❌ *Registration Error*\n\nSorry, we encountered a database problem: ${err.message}\n\nPlease try again by typing *REGISTER*.`;
     }
   }
 
