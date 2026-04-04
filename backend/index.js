@@ -1,13 +1,13 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const axios = require('axios');
 const twilio = require('twilio');
 const { calculatePremium, getCoverageLimit, getValidityPeriod } = require('./lib/premium-calculator');
 const userManager = require('./lib/user-manager');
 const db = require('./lib/supabase');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,17 +18,29 @@ const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
 const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioWhatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || 'whatsapp:+1234567890';
 
-// Initialize client only if credentials exist
+// Initialize client only if valid credentials exist
 let twiliClient = null;
-if (twilioAccountSid && twilioAuthToken) {
+if (twilioAccountSid && twilioAuthToken && twilioAccountSid.length > 5) {
   try {
     twiliClient = twilio(twilioAccountSid, twilioAuthToken);
+    console.log('✅ Twilio Client Initialized');
   } catch (err) {
     console.error('❌ Failed to initialize Twilio client:', err.message);
   }
 }
 
-const { MessagingResponse } = twilio.twiml;
+// Safest way to get MessagingResponse across different Twilio SDK versions
+let MessagingResponse;
+try {
+  MessagingResponse = twilio.twiml.MessagingResponse;
+} catch (e) {
+  try {
+    const twilioPackage = require('twilio');
+    MessagingResponse = twilioPackage.twiml.MessagingResponse;
+  } catch (err) {
+    console.error('❌ Could not load Twilio MessagingResponse');
+  }
+}
 
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
@@ -375,14 +387,28 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
   }
 
   // Create TwiML response
+  if (!MessagingResponse) {
+    console.error('❌ Cannot send reply: MessagingResponse is not loaded');
+    return res.status(500).send('Server Error');
+  }
+
   const twiml = new MessagingResponse();
   twiml.message(botResponse);
 
   console.log(`📤 Sending TwiML Response to ${uniqueUserId}`);
   console.log('='.repeat(70) + '\n');
   
-  res.type('text/xml').send(twiml.toString());
+  const xmlResponse = '<?xml version="1.0" encoding="UTF-8"?>' + twiml.toString();
+  res.header('Content-Type', 'text/xml');
+  res.send(xmlResponse);
 });
+
+// Final Error Handler to prevent process crashes
+app.use((err, req, res, next) => {
+  console.error('🔥 GLOBAL SERVER ERROR:', err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
 
 // ============ CHATBOT SYSTEM ============
 async function generateBotResponse(message, senderPhone) {
