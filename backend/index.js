@@ -346,20 +346,21 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
   let botResponse;
   try {
     botResponse = await generateBotResponse(incomingMessage, uniqueUserId);
-    console.log(`✅ Response generated`);
+    console.log(`✅ Response generated for ${uniqueUserId}`);
   } catch (error) {
-    console.error(`❌ ERROR:`, error.message);
+    console.error(`❌ BOT PROCESSING ERROR:`, error.message);
     botResponse = `❌ Sorry, there was an error processing your message. Please try again.`;
   }
 
-  try {
-    sendWhatsAppMessage(senderNumber, botResponse);
-  } catch (error) {
-    console.error(`❌ Error sending message:`, error.message);
-  }
+  // Create TwiML response
+  const MessagingResponse = require('twilio').twiml.MessagingResponse;
+  const twiml = new MessagingResponse();
+  twiml.message(botResponse);
 
+  console.log(`📤 Sending TwiML Response to ${uniqueUserId}`);
   console.log('='.repeat(70) + '\n');
-  res.status(200).send('Message received');
+  
+  res.type('text/xml').send(twiml.toString());
 });
 
 // ============ CHATBOT SYSTEM ============
@@ -458,29 +459,56 @@ async function generateBotResponse(message, senderPhone) {
 
     session.registrationData.upiId = upiId;
 
-    // Call backend to create worker in Supabase
+    // INTERNAL REGISTRATION CALL (Direct DB access to avoid network loops)
     try {
-      await axios.post('https://smart-adaptive-income-shield-sais.onrender.com/api/register', {
+      console.log('📝 BOT SIGNUP: Internal DB call for', senderPhone);
+      
+      const zoneData = zones.find(z => z.name === session.registrationData.zone);
+      const workerId = `W${Date.now()}`;
+      
+      // 1. Create worker
+      const worker = await db.createWorker(
+        senderPhone, 
+        workerId, 
+        session.registrationData.name, 
+        session.registrationData.zone, 
+        session.registrationData.platform, 
+        session.registrationData.weeklyHours, 
+        session.registrationData.upiId
+      );
+
+      // 2. Create policy
+      const premiumData = calculatePremium({ weeklyHours: session.registrationData.weeklyHours }, zoneData || zones[0], []);
+      const coverageData = getCoverageLimit(premiumData.totalPremium, { weeklyHours: session.registrationData.weeklyHours }, zoneData || zones[0]);
+      
+      await db.createPolicy(
+        `POL${Date.now()}`,
+        senderPhone,
+        session.registrationData.zone,
+        premiumData.totalPremium,
+        coverageData.coverageLimit
+      );
+
+      // 3. Record registration
+      await db.createRegistration(senderPhone, 'completed', {
         name: session.registrationData.name,
-        phone: senderPhone,
         zone: session.registrationData.zone,
         platform: session.registrationData.platform,
         weeklyHours: session.registrationData.weeklyHours,
-        upiId: session.registrationData.upiId,
-        source: 'chatbot'
+        upiId: session.registrationData.upiId
       });
 
       // Update session
-      session.workerId = `W${Date.now()}`;
+      session.workerId = workerId;
       session.isRegistered = true;
       session.workerData = { ...session.registrationData };
       session.registrationStep = null;
       session.registrationData = {};
 
-      return `🎉 *Registration Complete!*\n\n✅ Welcome, ${session.workerData.name}!\n\n*Your Details:*\n🆔 Worker ID: ${session.workerId}\n📱 Phone: ${senderPhone}\n📍 Zone: ${session.workerData.zone}\n🚗 Platform: ${session.workerData.platform}\n⏰ Hours: ${session.workerData.weeklyHours}/week\n💳 UPI ID: ${session.workerData.upiId}\n\n✅ Insurance policy automatically created!\n🛡️ Coverage active immediately\n\nYou're all set! Use these commands:\n📋 POLICY | 💰 CLAIM | 📊 STATUS | 💬 HELP`;
+      return `🎉 *Registration Complete!*\n\n✅ Welcome, ${session.workerData.name}!\n\n*Your Details:*\n🆔 Worker ID: ${session.workerId}\n📍 Zone: ${session.workerData.zone}\n🚗 Platform: ${session.workerData.platform}\n⏰ Hours: ${session.workerData.weeklyHours}/week\n💳 UPI ID: ${session.workerData.upiId}\n\n🛡️ Coverage active immediately\n\nYou're all set! Use these commands:\n📋 POLICY | 💰 CLAIM | 📊 STATUS | 💬 HELP`;
     } catch (err) {
-      console.error('❌ Error creating worker:', err.response?.data || err.message);
-      return `❌ *Registration Failed*\n\nSorry, we couldn't save your data to the database. Error: ${err.response?.data?.error || err.message}\n\nPlease try again by typing *REGISTER*.`;
+      console.error('❌ Error during internal BOT registration:', err.message);
+      return `❌ *Registration Failed*\n\nSorry, we couldn't save your data. Error: ${err.message}\n\nPlease try again by typing *REGISTER*.`;
     }
   }
 
@@ -554,14 +582,22 @@ async function generateBotResponse(message, senderPhone) {
     const payout = Math.round(incomeLoss * 0.8);
     const claimId = `C${Date.now()}`;
 
+    // INTERNAL CLAIM SUBMISSION
     try {
-      await axios.post('https://smart-adaptive-income-shield-sais.onrender.com/api/claims/submit', {
-        workerId: senderPhone,
-        triggerType: triggerType,
-        incomeLoss: incomeLoss,
-        upiId: upiId,
-        source: 'chatbot'
-      });
+      const payout = Math.round(incomeLoss * 0.8);
+      const claimId = `C${Date.now()}`;
+
+      await db.createClaim(
+        claimId,
+        senderPhone,
+        triggerType,
+        `Income loss from ${triggerType}`,
+        incomeLoss,
+        upiId
+      );
+
+      // Auto-approve
+      await db.approveClaim(claimId, payout);
 
       session.claimStep = null;
       session.claimData = {};
@@ -569,8 +605,8 @@ async function generateBotResponse(message, senderPhone) {
 
       return `✅ *Claim Filed Successfully!*\n\n*Claim Details:*\n🆔 Claim ID: ${claimId}\n📋 Trigger: ${triggerType}\n💰 Income Loss: ₹${incomeLoss}\n💸 Payout (80%): ₹${payout}\n✅ Status: AUTO-APPROVED\n\n*Payment Details:*\n💵 Amount: ₹${payout}\n📱 UPI: ${upiId}\n⏱️ Status: PROCESSING\n⏳ Expected in: 2-4 hours\n\nYou'll get an SMS when payment is received.\n\nNeed more help? Reply: HELP`;
     } catch (err) {
-      console.error('❌ Error creating claim:', err.response?.data || err.message);
-      return `❌ *Claim Submission Failed*\n\nError: ${err.response?.data?.error || err.message}\n\nPlease try again by typing *CLAIM*.`;
+      console.error('❌ Error during internal BOT claim:', err.message);
+      return `❌ *Claim Submission Failed*\n\nError: ${err.message}\n\nPlease try again by typing *CLAIM*.`;
     }
   }
 
