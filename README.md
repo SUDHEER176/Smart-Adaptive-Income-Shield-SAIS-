@@ -79,20 +79,6 @@ IF worker is ACTIVE AND downtime >= threshold AND multiple workers report issue:
 Ravi (Vijayawada) reports rain via WhatsApp. System detects 10 other active workers in the same zone reporting rain. 
 *   **Result**: 💰 **₹350 credited** instantly.
 
-### 🔁 Application Workflow
-```mermaid
-graph TD
-    A[Gig Worker on WhatsApp] --> B{User sends "REPORT"}
-    B --> C[Collect Inputs: Status, Time, Zone]
-    C --> D{Is Disruption Valid?}
-    D -- NO --> E[Reject Claim & Notify]
-    D -- YES --> F[Proceed to Fraud Check]
-    F --> G{Fraud Detected?}
-    G -- NO --> I[Calculate Payout]
-    I --> J[✅ Claim Approved - WhatsApp Notified]
-```
-
----
 
 ## 4. Weekly Premium Model & Parametric Triggers
 
