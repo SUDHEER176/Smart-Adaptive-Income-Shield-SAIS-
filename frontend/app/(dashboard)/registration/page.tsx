@@ -38,7 +38,7 @@ export default function RegistrationPage() {
         description="All registrations via WhatsApp Chatbot"
       />
 
-      <div className="flex-1 p-6 space-y-6">
+      <div className="flex-1 p-4 md:p-6 space-y-6">
         {/* How to Register Card */}
         <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
           <CardHeader>

@@ -26,7 +26,7 @@ export default function SettingsPage() {
         description="Configure platform settings and integrations"
       />
 
-      <div className="flex-1 p-6 space-y-6 max-w-4xl">
+      <div className="flex-1 p-4 md:p-6 space-y-6 max-w-4xl">
         {/* General Settings */}
         <Card className="bg-card border-border">
           <CardHeader>

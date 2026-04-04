@@ -90,7 +90,7 @@ export default function ZonesPage() {
         description="Monitor and analyze risk across delivery zones"
       />
 
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-4 md:p-6">
         <Tabs defaultValue="grid" className="space-y-6">
           <div className="flex items-center justify-between">
             <TabsList className="bg-secondary">

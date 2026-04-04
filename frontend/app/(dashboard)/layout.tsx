@@ -11,12 +11,6 @@ export default function DashboardLayout({
       <AppSidebar />
       <SidebarInset>
         <div className="flex flex-col min-h-screen">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 md:hidden">
-            <SidebarTrigger className="-ml-1" />
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">SAIS</span>
-            </div>
-          </header>
           <main className="flex-1">
             {children}
           </main>
