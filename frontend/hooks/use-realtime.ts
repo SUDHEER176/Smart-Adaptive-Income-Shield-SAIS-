@@ -32,35 +32,65 @@ export function useRealtimeData(enabled = true) {
     if (!enabled) return
 
     let eventSource: EventSource | null = null
+    let retryCount = 0
+    let reconnectTimeout: NodeJS.Timeout | null = null
 
     const connectToStream = () => {
-      try {
-        eventSource = new EventSource('https://smart-adaptive-income-shield-sais.onrender.com/api/stream')
-        setIsConnected(true)
-        setIsLoading(false)
+      // Clear any existing connection
+      if (eventSource) {
+        eventSource.close()
+        eventSource = null
+      }
+      
+      // Clear any pending reconnect
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout)
+        reconnectTimeout = null
+      }
 
-        eventSource.onmessage = (event) => {
+      const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000)
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://smart-adaptive-income-shield-sais.onrender.com'
+      
+      try {
+        console.log(`📡 Connecting to SSE stream at ${baseUrl}/api/stream (Retry: ${retryCount})`)
+        eventSource = new EventSource(`${baseUrl}/api/stream`)
+        
+        eventSource.onopen = () => {
+          console.log('✅ SSE Connection established')
+          setIsConnected(true)
+          setIsLoading(false)
+          retryCount = 0 // Reset on success
+        }
+
+        eventSource.onmessage = (event: MessageEvent) => {
           try {
             const newData = JSON.parse(event.data)
             setData(newData)
           } catch (error) {
-            console.error('Error parsing realtime data:', error)
+            console.error('❌ Error parsing SSE data:', error)
           }
         }
 
         eventSource.onerror = (error) => {
-          console.error('SSE Connection failed. Possible reasons: Server is offline, CORS issues, or incorrect backend URL.', error)
+          console.warn('⚠️ SSE Connection failed. Reconnecting...', error)
           setIsConnected(false)
-          eventSource?.close()
-          // Reconnect after 5 seconds to avoid constant retry loops
-          setTimeout(connectToStream, 5000)
+          
+          if (eventSource) {
+            eventSource.close()
+            eventSource = null
+          }
+
+          retryCount++
+          console.log(`🔄 Reconnecting in ${retryDelay/1000}s...`)
+          reconnectTimeout = setTimeout(connectToStream, retryDelay)
         }
       } catch (error) {
-        console.error('Failed to initialize EventSource connection:', error)
+        console.error('❌ Failed to initialize EventSource:', error)
         setIsLoading(false)
         setIsConnected(false)
-        // Retry connection after 5 seconds
-        setTimeout(connectToStream, 5000)
+        
+        retryCount++
+        reconnectTimeout = setTimeout(connectToStream, retryDelay)
       }
     }
 
@@ -69,6 +99,10 @@ export function useRealtimeData(enabled = true) {
     return () => {
       if (eventSource) {
         eventSource.close()
+        eventSource = null
+      }
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout)
       }
     }
   }, [enabled])
