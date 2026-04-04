@@ -415,7 +415,7 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
   console.log('='.repeat(70) + '\n');
   
   res.header('Content-Type', 'text/xml');
-  res.send('<?xml version="1.0" encoding="UTF-8"?>' + twiml.toString());
+  res.send(twiml.toString());
 });
 
 // Final Error Handler to prevent process crashes
