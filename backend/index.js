@@ -478,8 +478,14 @@ async function generateBotResponse(message, senderPhone) {
       );
 
       // 2. Create policy
-      const premiumData = calculatePremium({ weeklyHours: session.registrationData.weeklyHours }, zoneData || zones[0], []);
-      const coverageData = getCoverageLimit(premiumData.totalPremium, { weeklyHours: session.registrationData.weeklyHours }, zoneData || zones[0]);
+      const premiumData = calculatePremium({ 
+        weeklyHours: session.registrationData.weeklyHours,
+        riskScore: 0.5 // Default risk score for new workers
+      }, zoneData || zones[0], []);
+      const coverageData = getCoverageLimit(premiumData.totalPremium, { 
+        weeklyHours: session.registrationData.weeklyHours,
+        riskScore: 0.5 
+      }, zoneData || zones[0]);
       
       await db.createPolicy(
         `POL${Date.now()}`,
@@ -619,7 +625,111 @@ async function generateBotResponse(message, senderPhone) {
     const claimsCount = (session.claims || []).length;
     const totalPayouts = session.claims.reduce((sum, c) => sum + (c.payout || 0), 0);
 
-    return `📊 *Your Profile & Status*\n\n*Worker Info:*\n👤 Name: ${session.workerData.name}\n🆔 ID: ${session.workerId}\n📱 Phone: ${senderPhone}\n📍 Zone: ${session.workerData.zone}\n🚗 Platform: ${session.workerData.platform}\n⏰ Hours/Week: ${session.workerData.weeklyHours}\n✅ Status: ACTIVE\n\n*Insurance Status:*\n✅ Coverage: ACTIVE\n💵 Premium: ₹50-200/week\n📅 Valid Till: This week (auto-renews)\n\n*Claims & Payouts:*\n📋 Total Claims: ${claimsCount}\n💰 Total Payouts: ₹${totalPayouts.toLocaleString('en-IN')}\n\n📲 Everything looks good!\n\nReply: *CLAIM* for new claim or *HELP* for menu`;
+    return `📊 *Your Profile & Status*\n\n*Worker Info:*\n👤 Name: ${session.workerData.name}\n🆔 ID: ${session.workerId}\n📱 Phone: ${senderPhone}\n📍 Zone: ${session.workerData.zone}\n🚗 Platform: ${session.workerData.platform}\n⏰ Hours/Week: ${session.workerData.weeklyHours}\n✅ Status: ACTIVE\n\n*Insurance Status:*\n✅ Coverage: ACTIVE\n💵 Premium: ₹50-200/week\n📅 Valid Till: This week (auto-renews)\n\n*Claims & Payouts:*\n📋 Total Claims: ${claimsCount}\n💰 Total Payouts: ₹${totalPayouts.toLocaleString('en-IN')}\n\nYou can update your profile anytime. Reply: *UPDATE*`;
+  }
+
+  // UPDATE DETAILS
+  if (msg === 'update' || msg === 'edit' || msg === 'change') {
+    session.updateStep = 'select_field';
+    return `📝 *Update Your Profile*\n\nWhich detail would you like to update?\n\n1. Name\n2. Zone\n3. Platform\n4. Working Hours\n5. UPI ID\n\nReply with number (1-5):`;
+  }
+
+  if (session.updateStep === 'select_field') {
+    const fieldMap = { '1': 'name', '2': 'zone', '3': 'platform', '4': 'weeklyHours', '5': 'upiId' };
+    const fieldNames = { '1': 'Name', '2': 'Zone', '3': 'Platform', '4': 'Working Hours', '5': 'UPI ID' };
+    const choice = msg.trim();
+    
+    if (!fieldMap[choice]) {
+      return `❌ Invalid option. Please reply with 1-5.`;
+    }
+
+    session.updatingField = fieldMap[choice];
+    session.updatingFieldName = fieldNames[choice];
+    session.updateStep = 'enter_new_value';
+
+    if (choice === '2') {
+      const zoneList = zones.map((z, i) => `${i + 1}. ${z.name}`).join('\n');
+      return `📍 *Update Zone*\n\nPlease select your new zone:\n\n${zoneList}\n\nReply with the zone number or name.`;
+    }
+
+    if (choice === '3') {
+      const platforms = ['1. Swiggy', '2. Zomato', '3. Blinkit', '4. Dunzo', '5. Zepto', '6. Other'];
+      return `🚗 *Update Platform*\n\nPlease select your new platform:\n\n${platforms.join('\n')}\n\nReply with the platform number or name.`;
+    }
+
+    return `📝 *Update ${fieldNames[choice]}*\n\nPlease enter your new ${fieldNames[choice].toLowerCase()}:`;
+  }
+
+  if (session.updateStep === 'enter_new_value') {
+    const field = session.updatingField;
+    let newValue = message.trim();
+
+    // Validation
+    if (field === 'weeklyHours') {
+      const hours = parseInt(newValue);
+      if (isNaN(hours) || hours < 1 || hours > 168) return `❌ Invalid hours. Enter 1-168.`;
+      newValue = hours;
+    }
+
+    if (field === 'upiId') {
+      if (!newValue.includes('@') || newValue.length < 5) return `❌ Invalid UPI ID.`;
+    }
+
+    if (field === 'zone') {
+      let selectedZone = zones.find(z => z.name.toLowerCase() === newValue.toLowerCase());
+      if (!selectedZone) {
+        const zoneNum = parseInt(newValue);
+        if (zoneNum > 0 && zoneNum <= zones.length) selectedZone = zones[zoneNum - 1];
+      }
+      if (!selectedZone) return `❌ Invalid zone. Please reply with a valid zone from the list.`;
+      newValue = selectedZone.name;
+    }
+
+    if (field === 'platform') {
+      const platforms = ['Swiggy', 'Zomato', 'Blinkit', 'Dunzo', 'Zepto', 'Other'];
+      const platNum = parseInt(newValue);
+      let selectedPlat = platforms.find(p => p.toLowerCase() === newValue.toLowerCase());
+      if (!selectedPlat && !isNaN(platNum) && platNum >= 1 && platNum <= platforms.length) {
+        selectedPlat = platforms[platNum - 1];
+      }
+      if (!selectedPlat) return `❌ Invalid platform.`;
+      newValue = selectedPlat;
+    }
+
+    try {
+      console.log(`📝 Updating ${field} to "${newValue}" for ${senderPhone}`);
+      
+      // Update in Supabase
+      const client = require('./lib/supabase').initializeSupabase();
+      
+      const updateData = {};
+      const dbFieldMap = {
+        name: 'name',
+        zone: 'zone',
+        platform: 'platform',
+        weeklyHours: 'working_hours',
+        upiId: 'upi_id'
+      };
+      
+      updateData[dbFieldMap[field]] = newValue;
+      
+      const { error } = await client
+        .from('workers')
+        .update(updateData)
+        .eq('phone_number', senderPhone);
+
+      if (error) throw error;
+
+      // Update Session
+      session.workerData[field] = newValue;
+      session.updateStep = null;
+      session.updatingField = null;
+
+      return `✅ *Profile Updated Header*\n\nYour ${session.updatingFieldName} has been changed to: *${newValue}*\n\nType *STATUS* to see your full profile.`;
+    } catch (err) {
+      console.error('❌ Update Error:', err.message);
+      return `❌ Failed to update your profile. Please try again.`;
+    }
   }
 
   // REPORT ISSUE
