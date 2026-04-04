@@ -460,7 +460,7 @@ async function generateBotResponse(message, senderPhone) {
 
     // Call backend to create worker in Supabase
     try {
-      await axios.post('http://127.0.0.1:5000/api/register', {
+      await axios.post('https://smart-adaptive-income-shield-sais.onrender.com/api/register', {
         name: session.registrationData.name,
         phone: senderPhone,
         zone: session.registrationData.zone,
@@ -555,7 +555,7 @@ async function generateBotResponse(message, senderPhone) {
     const claimId = `C${Date.now()}`;
 
     try {
-      await axios.post('http://127.0.0.1:5000/api/claims/submit', {
+      await axios.post('https://smart-adaptive-income-shield-sais.onrender.com/api/claims/submit', {
         workerId: senderPhone,
         triggerType: triggerType,
         incomeLoss: incomeLoss,

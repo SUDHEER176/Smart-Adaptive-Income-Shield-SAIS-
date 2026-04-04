@@ -35,7 +35,7 @@ export function useRealtimeData(enabled = true) {
 
     const connectToStream = () => {
       try {
-        eventSource = new EventSource('http://localhost:5000/api/stream')
+        eventSource = new EventSource('https://smart-adaptive-income-shield-sais.onrender.com/api/stream')
         setIsConnected(true)
         setIsLoading(false)
 
