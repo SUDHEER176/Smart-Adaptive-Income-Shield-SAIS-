@@ -82,7 +82,7 @@ export default function DashboardPage() {
         description="Real-time monitoring of SAIS platform metrics"
       />
 
-      <div className="flex-1 space-y-6 p-6">
+      <div className="flex-1 space-y-6 p-4 md:p-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
@@ -249,10 +249,10 @@ export default function DashboardPage() {
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-semibold">Active Triggers</CardTitle>
-              <Badge variant="destructive">{liveTriggers.filter(t => !t.endTime).length} Active</Badge>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {liveTriggers.filter(t => !t.endTime).slice(0, 4).map((trigger) => (
+            <Badge variant="destructive">{(liveTriggers || []).filter(t => !t.endTime).length} Active</Badge>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {(liveTriggers || []).filter(t => !t.endTime).slice(0, 4).map((trigger) => (
                 <div
                   key={trigger.id}
                   className="flex items-center justify-between rounded-lg border border-border bg-secondary/50 p-4"
@@ -290,10 +290,10 @@ export default function DashboardPage() {
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-semibold">Recent Claims</CardTitle>
-              <Badge variant="outline">{liveClaims.length} Total</Badge>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {liveClaims.slice(0, 4).map((claim) => (
+            <Badge variant="outline">{(liveClaims || []).length} Total</Badge>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {(liveClaims || []).slice(0, 4).map((claim) => (
                 <div
                   key={claim.id}
                   className="flex items-center justify-between rounded-lg border border-border bg-secondary/50 p-4"

@@ -11,14 +11,19 @@ interface HeaderProps {
   description?: string
 }
 
+import { SidebarTrigger } from "@/components/ui/sidebar"
+
 export function Header({ title, description }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">{title}</h1>
-        {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        )}
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center gap-4">
+        <SidebarTrigger className="hidden md:flex -ml-1 text-muted-foreground hover:text-foreground" />
+        <div>
+          <h1 className="text-lg md:text-xl font-semibold text-foreground leading-none">{title}</h1>
+          {description && (
+            <p className="hidden md:block text-sm text-muted-foreground mt-1">{description}</p>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

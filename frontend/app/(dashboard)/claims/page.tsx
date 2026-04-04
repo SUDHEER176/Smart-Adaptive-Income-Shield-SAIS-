@@ -81,7 +81,7 @@ export default function ClaimsPage() {
         description="Track and manage worker claims and payouts"
       />
 
-      <div className="flex-1 p-6 space-y-6">
+      <div className="flex-1 p-4 md:p-6 space-y-6">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
@@ -180,14 +180,15 @@ export default function ClaimsPage() {
                   </TableHeader>
                   <TableBody>
                     {claims.map((claim) => {
-                      const StatusIcon = statusConfig[claim.status]?.icon || AlertCircle
+                      const status = claim.status as keyof typeof statusConfig
+                      const StatusIcon = statusConfig[status]?.icon || AlertCircle
                       return (
                         <TableRow key={claim.id} className="border-border">
                           <TableCell className="font-mono text-sm">{claim.id}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-medium">
-                                {claim.workerName.split(' ').map(n => n[0]).join('')}
+                                {claim.workerName.split(' ').map((n: string) => n[0]).join('')}
                               </div>
                               <span>{claim.workerName}</span>
                             </div>
@@ -230,8 +231,8 @@ export default function ClaimsPage() {
                             <Badge
                               variant="outline"
                               className={cn(
-                                statusConfig[claim.status]?.bg,
-                                statusConfig[claim.status]?.color
+                                statusConfig[status]?.bg,
+                                statusConfig[status]?.color
                               )}
                             >
                               <StatusIcon className="h-3 w-3 mr-1" />
@@ -273,14 +274,15 @@ export default function ClaimsPage() {
                   </TableHeader>
                   <TableBody>
                     {payouts.map((payout) => {
-                      const StatusIcon = statusConfig[payout.status]?.icon || AlertCircle
+                      const status = payout.status as keyof typeof statusConfig
+                      const StatusIcon = statusConfig[status]?.icon || AlertCircle
                       return (
                         <TableRow key={payout.id} className="border-border">
                           <TableCell className="font-mono text-sm">{payout.id}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-medium">
-                                {payout.workerName.split(' ').map(n => n[0]).join('')}
+                                {payout.workerName.split(' ').map((n: string) => n[0]).join('')}
                               </div>
                               <span>{payout.workerName}</span>
                             </div>
@@ -294,8 +296,8 @@ export default function ClaimsPage() {
                             <Badge
                               variant="outline"
                               className={cn(
-                                statusConfig[payout.status]?.bg,
-                                statusConfig[payout.status]?.color
+                                statusConfig[status]?.bg,
+                                statusConfig[status]?.color
                               )}
                             >
                               <StatusIcon className={cn(

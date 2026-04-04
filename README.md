@@ -162,3 +162,16 @@ Instead of black-box ML, SAIS uses a **Confidence Score (0–100)** to ensure fa
 
 ### 🔥 Final Positioning
 **SAIS is not just an insurance concept—it is a working, WhatsApp-first parametric protection system.** It is designed for real gig worker behavior with automated decisions and clear, reliable rules.
+
+SUDHEER - Full Stack & Bot Lead
+JESHNAV  - UI/UX & Frontend
+BHAVANA - ML & Data Strategy
+SANA - Product & Documentation
+### ?? The SAIS Team
+
+| Name | Role |
+| :--- | :--- |
+| **SUDHEER** | ??? Full Stack & Bot Lead |
+| **JESHNAV** | ?? UI/UX & Frontend |
+| **BHAVANA** | ?? ML & Data Strategy |
+| **SANA** | ?? Product & Documentation |

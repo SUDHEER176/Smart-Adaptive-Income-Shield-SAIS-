@@ -94,7 +94,7 @@ export default function FraudPage() {
         description="Multi-signal validation system for claim verification"
       />
 
-      <div className="flex-1 p-6 space-y-6">
+      <div className="flex-1 p-4 md:p-6 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <Card className="bg-card border-border">
@@ -277,7 +277,7 @@ export default function FraudPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/20 text-destructive text-sm font-medium">
-                      {claim.workerName.split(' ').map(n => n[0]).join('')}
+                      {claim.workerName.split(' ').map((n: string) => n[0]).join('')}
                     </div>
                     <div>
                       <p className="font-medium">{claim.workerName}</p>

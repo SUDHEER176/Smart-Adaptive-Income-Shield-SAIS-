@@ -1,0 +1,10 @@
+﻿| **Claims** | Manual filing & forms | **Automated processing** via chat |
+| **Oversight** | Opaque/Black-box decisions | **Transparent Scoring System** |
+
+### ðŸ”¥ Final Positioning
+**SAIS is not just an insurance conceptâ€”it is a working, WhatsApp-first parametric protection system.** It is designed for real gig worker behavior with automated decisions and clear, reliable rules.
+
+SUDHEER - Full Stack & Bot Lead
+JESHNAV  - UI/UX & Frontend
+BHAVANA - ML & Data Strategy
+SANA - Product & Documentation
