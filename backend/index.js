@@ -386,21 +386,36 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
     botResponse = `❌ Sorry, there was an error processing your message. Please try again.`;
   }
 
-  // Create TwiML response
+  // Step 1: Proactive Out-of-band Send (Rest API)
+  // This is a backup in case TwiML is blocked/ignored by Twilio Sandbox
+  if (twiliClient) {
+    try {
+      console.log(`📡 Attempting direct REST send to ${uniqueUserId}...`);
+      await twiliClient.messages.create({
+        from: twilioWhatsappNumber,
+        to: `whatsapp:${uniqueUserId}`,
+        body: botResponse
+      });
+      console.log(`✅ Direct REST message SENT to ${uniqueUserId}`);
+    } catch (pushErr) {
+      console.warn(`⚠️ Direct REST send failed:`, pushErr.message);
+    }
+  }
+
+  // Step 2: Synchronous TwiML response
   if (!MessagingResponse) {
-    console.error('❌ Cannot send reply: MessagingResponse is not loaded');
-    return res.status(500).send('Server Error');
+    console.error('❌ Cannot send TwiML: MessagingResponse is not loaded');
+    return res.status(200).send('OK'); // Still 200 to acknowledge Twilio
   }
 
   const twiml = new MessagingResponse();
   twiml.message(botResponse);
 
-  console.log(`📤 Sending TwiML Response to ${uniqueUserId}`);
+  console.log(`📤 Sending TwiML XML to Twilio for ${uniqueUserId}`);
   console.log('='.repeat(70) + '\n');
   
-  const xmlResponse = '<?xml version="1.0" encoding="UTF-8"?>' + twiml.toString();
   res.header('Content-Type', 'text/xml');
-  res.send(xmlResponse);
+  res.send('<?xml version="1.0" encoding="UTF-8"?>' + twiml.toString());
 });
 
 // Final Error Handler to prevent process crashes
