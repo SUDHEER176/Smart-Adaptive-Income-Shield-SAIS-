@@ -17,7 +17,18 @@ const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000';
 const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
 const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioWhatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || 'whatsapp:+1234567890';
-const twiliClient = twilio(twilioAccountSid, twilioAuthToken);
+
+// Initialize client only if credentials exist
+let twiliClient = null;
+if (twilioAccountSid && twilioAuthToken) {
+  try {
+    twiliClient = twilio(twilioAccountSid, twilioAuthToken);
+  } catch (err) {
+    console.error('❌ Failed to initialize Twilio client:', err.message);
+  }
+}
+
+const { MessagingResponse } = twilio.twiml;
 
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
@@ -325,14 +336,25 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
   console.log(`⏰ ${timestamp} - NEW WHATSAPP MESSAGE RECEIVED`);
   console.log('='.repeat(70));
   
-  const incomingMessage = req.body.Body?.trim() || ''; 
-  let senderNumber = req.body.From || '';
+  // Safety check for body
+  if (!req.body || Object.keys(req.body).length === 0) {
+    console.warn('⚠️  RECEIVED EMPTY REQUEST BODY - Check parsing/webhook config');
+    return res.status(200).send('<Response></Response>'); // Empty TwiML
+  }
+
+  const incomingMessage = (req.body.Body || '').trim(); 
+  let senderNumber = (req.body.From || '').trim();
   const messageId = req.body.MessageSid || 'NO_MSG_ID';
 
   if (senderNumber.startsWith('whatsapp:')) {
     senderNumber = senderNumber.replace('whatsapp:', '');
   }
   senderNumber = senderNumber.trim();
+
+  if (!senderNumber) {
+    console.error('❌ NO SENDER NUMBER FOUND');
+    return res.status(200).send('<Response></Response>');
+  }
 
   let uniqueUserId = senderNumber;
   if (senderNumber === '+1' || senderNumber === '1' || senderNumber === '+') {
@@ -353,7 +375,6 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
   }
 
   // Create TwiML response
-  const MessagingResponse = require('twilio').twiml.MessagingResponse;
   const twiml = new MessagingResponse();
   twiml.message(botResponse);
 
